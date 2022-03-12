@@ -3,7 +3,8 @@ import pyfiglet
 import colorama
 from colorama import Fore, Style ,Back
 
-ascii_banner = pyfiglet.figlet_format("Scripting's Cool \nAuthor: trustie_rity")
+print(Fore.BLUE + "Author : trustie_rity")
+ascii_banner = pyfiglet.figlet_format("ZIP Tool")
 print(Fore.WHITE + ascii_banner)
 message = "rockyou is a sweet wordlist to use :) \n Path : /usr/share/wordlists/rockyou.txt \n Thank me later :) \n"
 print(Fore.YELLOW + message)
@@ -17,7 +18,7 @@ def crack_password(password_list, obj):
 					idx += 1
 					obj.extractall(pwd=word)
 					print("Password found at line", idx)
-					print(Back.GREEN + "Password is", word.decode())
+					print(Fore.GREEN + Back.BLACK + "Password is", word.decode())
 					return True
 				except:
 					continue
@@ -26,7 +27,7 @@ def crack_password(password_list, obj):
 
 password_list = str(input("Enter the full path of passwordlist: "))
 
-zip_file = str(input("Enter full path of zip file to bruteforce"))
+zip_file = str(input("Enter full path of zip file to bruteforce: "))
 
 
 try:
