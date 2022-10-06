@@ -1,11 +1,11 @@
 ## PHP Type juggling
-
-### proj1 Writeup
+### proj1 writeup
 #### Setup commands
 - To set up the project you need to use install composer and use it to install laravel
 - The command to start the local server is  
-``` php artisan server ```
+`` php artisan server ``
 <img src="proj1/server.jpg" alt="server image" />
+#### solving
 - visit the url given on the browser
 - We view the web site using the given url
 <img src="proj1/web.jpg" alt="web image" />
