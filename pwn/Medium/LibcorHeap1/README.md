@@ -9,7 +9,7 @@
 - To compile the binary: ``` gcc -no-pie -o chall firstchallenge.c```
 
 ## PWN(Binary Exploitation)
-####Synopsis
+#### Synopsis
 - This is a binary exploitation challenge that allows one to exploit a bug made by the programmer to gain access to the server by out popping a shell.
 - Skills Required
  * Basic linux knowledge
@@ -17,11 +17,11 @@
  * Debugging techniques
 - Enumeration
 - First as we all don't really love assembly, let us use the source code.
-<img src="./main.jpeg" />
+<img src="./main.png" />
 
 - The main function is pretty simple. We can see it welcomes us with a banner then proceeds to test our input and it will jump to various functions based on our choice.
 - If we don't choose between 1 and 2 it sends an exit signal to the kernel so we never return .Let's explore the two functions :
-``` nerd(): ``
+`` nerd(): ``
 <img src="./big.jpeg" />
 - We start by declaring 3 struct objects from this struct case_study skeleton:
 
