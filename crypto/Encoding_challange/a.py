@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# Author : trustie_rity
+
 from pwn import * # pip install pwntools
 import json , subprocess , base64
 from Crypto.Util.number import *
