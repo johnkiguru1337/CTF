@@ -5,3 +5,4 @@ There is also a category for learning most common ctf categories . And since am 
 * [x] Web
 * [x] pwn
 * [x] Tools
+* [x] Cryptography
