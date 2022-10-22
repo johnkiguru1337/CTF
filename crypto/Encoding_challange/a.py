@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Author : trustie_rity
+# Author : @trustie_rity
 
 from pwn import * # pip install pwntools
 import json , subprocess , base64
@@ -27,7 +27,8 @@ while True:
 		log.info(f"{c}")
         
 		if "utf-8" in b:
-			decoded = "".join([chr(i) for i in c])
+			#decoded = "".join([chr(i) for i in c])
+			decoded = "".join(list(map(chr,c)))
 		elif "hex" in b:
 			decoded = bytes.fromhex(c).decode()
 		elif "rot13" in b:
