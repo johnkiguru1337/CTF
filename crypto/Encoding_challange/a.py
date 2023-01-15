@@ -28,7 +28,7 @@ while True:
         
 		if "utf-8" in b:
 			#decoded = "".join([chr(i) for i in c])
-			decoded = "".join(list(map(chr,c)))
+			decoded = "".join(map(chr,c))
 		elif "hex" in b:
 			decoded = bytes.fromhex(c).decode()
 		elif "rot13" in b:
