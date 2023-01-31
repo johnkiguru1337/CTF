@@ -128,9 +128,9 @@ if __name__ == "__main__":
         exploit()
 ```
 ## Buffer\_yt
-	- files <a href="./Buffer_yt">here</a>
+ - files <a href="./Buffer_yt">here</a>
 ## Jump\_yt
-	- files <a href="./Jump_yt">here</a>
+ - files <a href="./Jump_yt">here</a>
 
 Happy hacking :D
 wiiih  :)
