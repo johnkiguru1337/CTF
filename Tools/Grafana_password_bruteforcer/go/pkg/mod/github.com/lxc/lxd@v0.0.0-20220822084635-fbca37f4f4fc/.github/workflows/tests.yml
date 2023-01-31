@@ -1,0 +1,121 @@
+name: Tests
+on:
+  - push
+  - pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  static-analysis:
+    env:
+      CGO_LDFLAGS_ALLOW: "(-Wl,-wrap,pthread_create)|(-Wl,-z,now)"
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.x
+
+      - name: Install dependencies
+        run: |
+          sudo add-apt-repository ppa:ubuntu-lxc/lxc-git-master -y
+          sudo add-apt-repository ppa:dqlite/dev -y
+          sudo apt update
+          sudo apt-get install -y lxc libdqlite-dev libselinux-dev libseccomp-dev acl attr autoconf automake dnsmasq-base git libdqlite-dev libacl1-dev libcap-dev liblxc1 liblxc-dev libsqlite3-dev libtool libudev-dev liblz4-dev libuv1-dev make pkg-config rsync squashfs-tools tar tcl xz-utils ebtables curl gettext jq sqlite3 socat bind9-dnsutils
+          python3 -m pip install flake8
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
+          sudo apt remove shellcheck
+          curl -L https://github.com/koalaman/shellcheck/releases/download/v0.8.0/shellcheck-v0.8.0.linux.x86_64.tar.xz -o shellcheck.tar.xz
+          tar -xf shellcheck.tar.xz
+          chmod +x shellcheck-v0.8.0/shellcheck
+          sudo mv shellcheck-v0.8.0/shellcheck /bin/shellcheck
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download go dependencies
+        run: |
+          go mod download
+
+      - name: Run static analysis
+        run: |
+          make static-analysis
+
+  client:
+    name: Unit tests (client)
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - 1.18.x
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Test client package
+        env:
+          CGO_ENABLED: 0
+        run: go test -v ./client/...
+
+      - name: Test lxc package
+        env:
+          CGO_ENABLED: 0
+        run: go test -v ./lxc/...
+
+      - name: Test shared package
+        env:
+          CGO_ENABLED: 0
+        run: go test -v ./shared/...
+
+  dependencies:
+    name: Vulnerable dependencies
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v2
+
+  woke:
+    name: Inclusive naming (documentation)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: woke
+        uses: get-woke/woke-action@v0
+        with:
+          # Cause the check to fail on any broke rules
+          fail-on-error: true
+          woke-args: "doc/*.md doc/**/*.md -c https://github.com/canonical-web-and-design/Inclusive-naming/raw/main/config.yml"
+
+  spellcheck:
+    name: Spellcheck (documentation)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Aspell
+        run: |
+          sudo apt-get install aspell aspell-en
+
+      - name: Build docs and run spellchecker
+        run: |
+          make doc-spellcheck

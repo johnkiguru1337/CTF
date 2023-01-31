@@ -1,0 +1,145 @@
+package main
+
+import (
+	"context"
+	"io/ioutil"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/lxc/lxd/lxd/db/operationtype"
+	"github.com/lxc/lxd/lxd/instance"
+	"github.com/lxc/lxd/lxd/instance/instancetype"
+	"github.com/lxc/lxd/lxd/operations"
+	"github.com/lxc/lxd/lxd/project"
+	"github.com/lxc/lxd/lxd/state"
+	"github.com/lxc/lxd/lxd/task"
+	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/logger"
+)
+
+// This task function expires logs when executed. It's started by the Daemon
+// and will run once every 24h.
+func expireLogsTask(state *state.State) (task.Func, task.Schedule) {
+	f := func(ctx context.Context) {
+		opRun := func(op *operations.Operation) error {
+			return expireLogs(ctx, state)
+		}
+
+		op, err := operations.OperationCreate(state, "", operations.OperationClassTask, operationtype.LogsExpire, nil, nil, opRun, nil, nil, nil)
+		if err != nil {
+			logger.Error("Failed to start log expiry operation", logger.Ctx{"err": err})
+			return
+		}
+
+		logger.Info("Expiring log files")
+		err = op.Start()
+		if err != nil {
+			logger.Error("Failed to expire logs", logger.Ctx{"err": err})
+		}
+
+		_, _ = op.Wait(ctx)
+		logger.Info("Done expiring log files")
+	}
+
+	return f, task.Daily()
+}
+
+func expireLogs(ctx context.Context, state *state.State) error {
+	// List the instances.
+	instances, err := instance.LoadNodeAll(state, instancetype.Any)
+	if err != nil {
+		return err
+	}
+
+	// List the directory.
+	entries, err := ioutil.ReadDir(state.OS.LogDir)
+	if err != nil {
+		return err
+	}
+
+	// Build the expected names.
+	names := []string{}
+	for _, inst := range instances {
+		names = append(names, project.Instance(inst.Project(), inst.Name()))
+	}
+
+	newestFile := func(path string, dir os.FileInfo) time.Time {
+		newest := dir.ModTime()
+
+		entries, err := ioutil.ReadDir(path)
+		if err != nil {
+			return newest
+		}
+
+		for _, entry := range entries {
+			if entry.ModTime().After(newest) {
+				newest = entry.ModTime()
+			}
+		}
+
+		return newest
+	}
+
+	for _, entry := range entries {
+		// At each iteration we check if we got cancelled in the meantime.
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
+		// We only care about instance directories.
+		if !entry.IsDir() {
+			continue
+		}
+
+		// Check if the instance still exists.
+		if shared.StringInSlice(entry.Name(), names) {
+			instDirEntries, err := ioutil.ReadDir(shared.LogPath(entry.Name()))
+			if err != nil {
+				return err
+			}
+
+			for _, instDirEntry := range instDirEntries {
+				path := shared.LogPath(entry.Name(), instDirEntry.Name())
+
+				// Deal with directories (snapshots).
+				if instDirEntry.IsDir() {
+					newest := newestFile(path, instDirEntry)
+					if time.Since(newest).Hours() >= 48 {
+						err := os.RemoveAll(path)
+						if err != nil {
+							return err
+						}
+					}
+
+					continue
+				}
+
+				// Only remove old log files (keep other files, such as conf, pid, monitor etc).
+				if strings.HasSuffix(instDirEntry.Name(), ".log") || strings.HasSuffix(instDirEntry.Name(), ".log.old") {
+					// Remove any log file which wasn't modified in the past 48 hours.
+					if time.Since(instDirEntry.ModTime()).Hours() >= 48 {
+						err := os.Remove(path)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+		} else {
+			// Empty directory if unchanged in the past 24 hours.
+			path := shared.LogPath(entry.Name())
+			newest := newestFile(path, entry)
+			if time.Since(newest).Hours() >= 24 {
+				err := os.RemoveAll(path)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
