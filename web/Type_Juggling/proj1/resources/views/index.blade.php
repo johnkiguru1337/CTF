@@ -17,7 +17,7 @@
                                 </div>
                                 <div class="card-body--">
                                     <div class="table-stats order-table ov-h">
-                                        <!-- CyberCon{H3r3_1s_y0ur_fl4g} -->
+                                        <!-- Flag{H3r3_1s_y0ur_fl4g} -->
                                         Welcome here comrade *_^
                                     </div>
                                 </div>
